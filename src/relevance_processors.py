@@ -43,7 +43,7 @@ class RelevanceProcessor:
             print("="*30)
 
 def grade_pq_pairs(test_qrel, docid_to_doc, qid_to_query, result_path: str, 
-                  pipeline, system_message: str, mode: str = "zeroshot_bing"):
+                  pipeline, system_message: str, mode: str = "zeroshot_bing", max_pairs: Optional[int] = None):
     """
     Process relevance judgments using UMBRELA methodology.
     
@@ -57,12 +57,18 @@ def grade_pq_pairs(test_qrel, docid_to_doc, qid_to_query, result_path: str,
         mode: UMBRELA prompt mode (default: "zeroshot_bing")
     """
     processor = RelevanceProcessor(result_path)
-    
+    total_pairs = len(test_qrel) if max_pairs is None else min(len(test_qrel), max_pairs)
+    print(f"Processing {total_pairs} pairs out of {len(test_qrel)} total pairs")
+
     with open(processor.result_path, 'w') as result_file, \
          open(processor.generation_path, 'w') as generation_errors_file, \
          open(processor.cuda_errors_path, 'w') as cuda_errors_file:
         
-        for eachline in tqdm(test_qrel.itertuples(index=True)):
+        for idx, eachline in enumerate(tqdm(test_qrel.itertuples(index=True), total=total_pairs)):
+            if max_pairs is not None and idx >= max_pairs:
+                print(f"\nReached maximum pairs limit ({max_pairs})")
+                break
+            
             qidx = eachline.qid
             docidx = eachline.docid
 
@@ -92,7 +98,6 @@ def grade_pq_pairs(test_qrel, docid_to_doc, qid_to_query, result_path: str,
                         docidx=docidx,
                         mode=mode
                     )
-                
                 # Debug print for first run
                 processor.debug_print(qidx, docidx, final_score, scoring_log)
 

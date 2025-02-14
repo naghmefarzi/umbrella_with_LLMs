@@ -93,10 +93,10 @@ def find_first_number(text: str) -> Optional[int]:
     Returns:
         Optional[int]: First valid score found, or 0 if none found
     """
-    # First try to find a number following UMBRELA format
-    umbrella_match = re.search(r'##final score:\s*([0-3])', text)
-    if umbrella_match:
-        return int(umbrella_match.group(1))
+    # First try to find a number after 'O: ---- for zeroshot bing'
+    o_score_match = re.search(r'O:\s*([0-3])', text)
+    if o_score_match:
+        return int(o_score_match.group(1))
     
     # Then try to find any valid score number
     general_match = re.search(r'\b[0-3]\b', text)
@@ -130,8 +130,8 @@ def grade_each_pq_pair(query: str, passage: str, pipeline,
     prompt = get_umbrella_prompt(query=query, passage=passage, mode=mode)
     
     # Get model response
+    # print(prompt)
     llms_output = get_relevance_score_baseline(prompt, pipeline, system_message)
-    
     # Extract score using regex pattern specific to UMBRELA format
     score_pattern = r'##final score:\s*([0-3])'
     match = re.search(score_pattern, llms_output)
