@@ -38,7 +38,11 @@ class TogetherPipeline:
         # Use Together API to generate responses
         response = self.client.chat.completions.create(
             model=self.model_name,
-            messages=messages
+            messages=messages,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            
         )
         return [{"generated_text": response.choices[0].message.content}]
 
