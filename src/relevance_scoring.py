@@ -93,12 +93,19 @@ def find_first_number(text: str) -> Optional[int]:
     Returns:
         Optional[int]: First valid score found, or 0 if none found
     """
-    # First try to find a number after 'O: ---- for zeroshot bing'
+    # Try patterns in order of most specific to most general
+    
+    # 1. Try "## final score: X" format first
+    final_score_match = re.search(r'(?:^|\n)##\s*final score:\s*([0-3])', text, re.IGNORECASE | re.MULTILINE)
+    if final_score_match:
+        return int(final_score_match.group(1))
+    
+    # 2. Try "O: X" format next
     o_score_match = re.search(r'O:\s*([0-3])', text)
     if o_score_match:
         return int(o_score_match.group(1))
     
-    # Then try to find any valid score number
+    # 3. Fall back to any valid score number
     general_match = re.search(r'\b[0-3]\b', text)
     if general_match:
         return int(general_match.group())
